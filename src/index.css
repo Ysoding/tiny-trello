@@ -48,7 +48,7 @@ h1 {
   color: white;
 }
 
-.main-board {
+.kanban-board {
   display: flex;
   flex: 10;
   gap: 1rem;
@@ -56,7 +56,7 @@ h1 {
   margin: 0 1rem 1rem;
 }
 
-.column {
+.kanban-column {
   flex: 1 1;
   display: flex;
   flex-direction: column;
@@ -64,7 +64,7 @@ h1 {
   border-radius: 1rem;
 }
 
-.column > ul {
+.kanban-column > ul {
   flex: 1;
 
   /* 确保不会改变页面高度，滚动条  */
@@ -75,13 +75,13 @@ h1 {
   padding: 0;
 }
 
-.column > h2 {
+.kanban-column > h2 {
   margin: 0.6rem 1rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid gray;
 }
 
-.column > h2 > button {
+.kanban-column > h2 > button {
   float: right;
   margin-top: 0.2rem;
   padding: 0.2rem 0.5rem;
@@ -92,19 +92,19 @@ h1 {
   font-size: 1rem;
 }
 
-.column-todo {
+.kanban-column-todo {
   background-color: #c0e8ba;
 }
 
-.column-ongoing {
+.kanban-column-ongoing {
   background-color: #c9af97;
 }
 
-.column-done {
+.kanban-column-done {
   background-color: #ffe799;
 }
 
-.card {
+.kanban-card {
   margin-bottom: 1rem;
   border: 1px solid goldenrod;
   border-radius: 1rem;
@@ -114,14 +114,14 @@ h1 {
   padding: 0.6rem 1rem;
 }
 
-.card-title {
+.kanban-card-title {
   min-height: 3rem;
 }
 
-.card-title > input[type="text"] {
+.kanban-card-title > input[type="text"] {
   width: 80%;
 }
-.card-status {
+.kanban-card-status {
   text-align: right;
   font-size: 0.8rem;
   color: #333;

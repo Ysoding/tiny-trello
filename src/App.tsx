@@ -11,6 +11,39 @@ interface NewCardProp {
   onSumbit: (title: string) => void;
 }
 
+interface KanbanBoardProp {
+  children: React.ReactNode;
+}
+
+interface KanbanColumnProp {
+  className: string;
+  title: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const KanbanCard = (c: CardItem) => {
+  return (
+    <li className="kanban-card">
+      <div className="kanban-card-title">{c.title}</div>
+      <div className="kanban-card-create_time">{c.create_time}</div>
+    </li>
+  );
+};
+
+const KanbanColumn = ({ children, title, className }: KanbanColumnProp) => {
+  const combinedClassName = `kanban-column ${className}`;
+  return (
+    <section className={combinedClassName}>
+      <h2>{title}</h2>
+      <ul>{children}</ul>
+    </section>
+  );
+};
+
+const KanbanBoard = ({ children }: KanbanBoardProp) => {
+  return <main className="kanban-board">{children}</main>;
+};
+
 function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [todoList, setTodoList] = useState<Array<CardItem>>([
@@ -35,9 +68,8 @@ function App() {
 
   useEffect(() => {
     const handleClick = (evt: MouseEvent) => {
-      console.log(evt.target);
       const isOutsideComponent = !document
-        .querySelector(".column-todo")
+        .querySelector(".kanban-column-todo")
         ?.contains(evt.target as Node);
       if (isOutsideComponent) {
         setShowAdd(false);
@@ -50,15 +82,6 @@ function App() {
       document.removeEventListener("click", handleClick, true);
     };
   }, []);
-
-  const Card = (c: CardItem) => {
-    return (
-      <li className="card">
-        <div className="card-title">{c.title}</div>
-        <div className="card-create_time">{c.create_time}</div>
-      </li>
-    );
-  };
 
   const handleSubmit = (title: string) => {
     setTodoList([{ title, create_time: new Date().toString() }, ...todoList]);
@@ -77,9 +100,9 @@ function App() {
     };
 
     return (
-      <li className="card">
+      <li className="kanban-card">
         <h3>添加新卡片</h3>
-        <div className="card-title">
+        <div className="kanban-card-title">
           <input
             type="text"
             value={title}
@@ -97,43 +120,41 @@ function App() {
         <h1>Tiny Trello</h1>
         <img src={reactLogo} className="logo" alt="logo" />
       </header>
-      <main className="main-board">
-        <section className="column column-todo">
-          <h2>
-            待处理
-            <button
-              onClick={() => {
-                setShowAdd(true);
-              }}
-              disabled={showAdd}
-            >
-              ⊕ 添加新卡片
-            </button>
-          </h2>
-          <ul>
-            {showAdd && <NewCard onSumbit={handleSubmit} />}
-            {todoList.map((item) => (
-              <Card {...item} />
-            ))}
-          </ul>
-        </section>
-        <section className="column column-ongoing">
-          <h2>进行中</h2>
-          <ul>
-            {ongoingList.map((item) => (
-              <Card {...item} />
-            ))}
-          </ul>
-        </section>
-        <section className="column column-done">
-          <h2>已完成</h2>
-          <ul>
-            {doneList.map((item) => (
-              <Card {...item} />
-            ))}
-          </ul>
-        </section>
-      </main>
+      <KanbanBoard>
+        <KanbanColumn
+          className="kanban-column-todo"
+          title={
+            <>
+              待处理
+              <button
+                onClick={() => {
+                  setShowAdd(true);
+                }}
+                disabled={showAdd}
+              >
+                ⊕ 添加新卡片
+              </button>
+            </>
+          }
+        >
+          {showAdd && <NewCard onSumbit={handleSubmit} />}
+          {todoList.map((item) => (
+            <KanbanCard {...item} />
+          ))}
+        </KanbanColumn>
+
+        <KanbanColumn title="进行中" className="kanban-column-ongoing">
+          {ongoingList.map((item) => (
+            <KanbanCard {...item} />
+          ))}
+        </KanbanColumn>
+
+        <KanbanColumn className="kanban-column-done" title="已完成">
+          {doneList.map((item) => (
+            <KanbanCard {...item} />
+          ))}
+        </KanbanColumn>
+      </KanbanBoard>
     </div>
   );
 }
