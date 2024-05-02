@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 
-interface CardItem {
+interface KanbanCardProp {
   title: string;
   createTime: string;
 }
@@ -21,11 +21,46 @@ interface KanbanColumnProp {
   children: React.ReactNode;
 }
 
-const KanbanCard = (c: CardItem) => {
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const UPDATE_INTERVAL = MINUTE;
+
+const KanbanCard = ({ title, createTime }: KanbanCardProp) => {
+  const [dispalyTime, setDisplayTime] = useState(createTime);
+
+  useEffect(() => {
+    const updateDisplayTime = () => {
+      const createTimeDate = new Date(createTime);
+      const nowDate = new Date();
+      const timePassed = nowDate.getTime() - createTimeDate.getTime();
+      console.log(timePassed);
+
+      let relativeTime = "刚刚";
+
+      if (MINUTE <= timePassed && timePassed < HOUR) {
+        relativeTime = `${Math.ceil(timePassed / MINUTE)} 分钟前`;
+      } else if (HOUR <= timePassed && timePassed < DAY) {
+        relativeTime = `${Math.ceil(timePassed / HOUR)} 小时前`;
+      } else if (DAY <= timePassed) {
+        relativeTime = `${Math.ceil(timePassed / DAY)} 天前`;
+      }
+
+      setDisplayTime(relativeTime);
+    };
+
+    const intervalID = setInterval(updateDisplayTime, UPDATE_INTERVAL);
+    updateDisplayTime();
+
+    return function cleanup() {
+      clearInterval(intervalID);
+    };
+  }, [createTime]);
+
   return (
     <li className="kanban-card">
-      <div className="kanban-card-title">{c.title}</div>
-      <div>{c.createTime}</div>
+      <div className="kanban-card-title">{title}</div>
+      <div title={createTime}>{dispalyTime}</div>
     </li>
   );
 };
@@ -46,20 +81,20 @@ const KanbanBoard = ({ children }: KanbanBoardProp) => {
 
 function App() {
   const [showAdd, setShowAdd] = useState(false);
-  const [todoList, setTodoList] = useState<Array<CardItem>>([
-    { title: "Kata1", createTime: "24-04-29 18:15" },
-    { title: "Kata2", createTime: "24-04-29 18:15" },
-    { title: "English", createTime: "24-04-29 18:15" },
-    { title: "Math", createTime: "24-04-29 18:15" },
+  const [todoList, setTodoList] = useState<Array<KanbanCardProp>>([
+    { title: "Kata1", createTime: "2024-04-29 18:15" },
+    { title: "Kata2", createTime: "2024-04-29 18:15" },
+    { title: "English", createTime: "2024-04-29 18:15" },
+    { title: "Math", createTime: "2024-04-29 18:15" },
   ]);
-  const [ongoingList, setOngoingList] = useState<Array<CardItem>>([
-    { title: "Kata11", createTime: "24-04-29 18:15" },
-    { title: "Kata22", createTime: "24-04-29 18:15" },
+  const [ongoingList, setOngoingList] = useState<Array<KanbanCardProp>>([
+    { title: "Kata11", createTime: "2024-04-29 18:15" },
+    { title: "Kata22", createTime: "2024-04-29 18:15" },
   ]);
 
-  const [doneList, setDoneList] = useState<Array<CardItem>>([
-    { title: "English2", createTime: "24-04-29 18:15" },
-    { title: "Math2", createTime: "24-04-29 18:15" },
+  const [doneList, setDoneList] = useState<Array<KanbanCardProp>>([
+    { title: "English2", createTime: "2024-04-29 18:15" },
+    { title: "Math2", createTime: "2024-04-29 18:15" },
   ]);
 
   useEffect(() => {
@@ -81,7 +116,6 @@ function App() {
 
   const handleSubmit = (title: string) => {
     setTodoList([{ title, createTime: new Date().toString() }, ...todoList]);
-    // setShowAdd(false);
   };
 
   const NewCard = ({ onSumbit }: NewCardProp) => {
