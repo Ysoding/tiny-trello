@@ -121,6 +121,7 @@ h1 {
 .kanban-card-title > input[type="text"] {
   width: 80%;
 }
+
 .kanban-card-status {
   text-align: right;
   font-size: 0.8rem;

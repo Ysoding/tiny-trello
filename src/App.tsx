@@ -4,7 +4,7 @@ import "./App.css";
 
 interface CardItem {
   title: string;
-  create_time: string;
+  createTime: string;
 }
 
 interface NewCardProp {
@@ -25,7 +25,7 @@ const KanbanCard = (c: CardItem) => {
   return (
     <li className="kanban-card">
       <div className="kanban-card-title">{c.title}</div>
-      <div className="kanban-card-create_time">{c.create_time}</div>
+      <div>{c.createTime}</div>
     </li>
   );
 };
@@ -47,23 +47,19 @@ const KanbanBoard = ({ children }: KanbanBoardProp) => {
 function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [todoList, setTodoList] = useState<Array<CardItem>>([
-    { title: "Kata1", create_time: "24-04-29 18:15" },
-    { title: "Kata2", create_time: "24-04-29 18:15" },
-    { title: "English", create_time: "24-04-29 18:15" },
-    { title: "English", create_time: "24-04-29 18:15" },
-    { title: "English", create_time: "24-04-29 18:15" },
-    { title: "English", create_time: "24-04-29 18:15" },
-    { title: "English", create_time: "24-04-29 18:15" },
-    { title: "Math", create_time: "24-04-29 18:15" },
+    { title: "Kata1", createTime: "24-04-29 18:15" },
+    { title: "Kata2", createTime: "24-04-29 18:15" },
+    { title: "English", createTime: "24-04-29 18:15" },
+    { title: "Math", createTime: "24-04-29 18:15" },
   ]);
   const [ongoingList, setOngoingList] = useState<Array<CardItem>>([
-    { title: "Kata11", create_time: "24-04-29 18:15" },
-    { title: "Kata22", create_time: "24-04-29 18:15" },
+    { title: "Kata11", createTime: "24-04-29 18:15" },
+    { title: "Kata22", createTime: "24-04-29 18:15" },
   ]);
 
   const [doneList, setDoneList] = useState<Array<CardItem>>([
-    { title: "English2", create_time: "24-04-29 18:15" },
-    { title: "Math2", create_time: "24-04-29 18:15" },
+    { title: "English2", createTime: "24-04-29 18:15" },
+    { title: "Math2", createTime: "24-04-29 18:15" },
   ]);
 
   useEffect(() => {
@@ -84,7 +80,7 @@ function App() {
   }, []);
 
   const handleSubmit = (title: string) => {
-    setTodoList([{ title, create_time: new Date().toString() }, ...todoList]);
+    setTodoList([{ title, createTime: new Date().toString() }, ...todoList]);
     // setShowAdd(false);
   };
 
@@ -139,19 +135,19 @@ function App() {
         >
           {showAdd && <NewCard onSumbit={handleSubmit} />}
           {todoList.map((item) => (
-            <KanbanCard {...item} />
+            <KanbanCard key={item.title} {...item} />
           ))}
         </KanbanColumn>
 
         <KanbanColumn title="进行中" className="kanban-column-ongoing">
           {ongoingList.map((item) => (
-            <KanbanCard {...item} />
+            <KanbanCard key={item.title} {...item} />
           ))}
         </KanbanColumn>
 
         <KanbanColumn className="kanban-column-done" title="已完成">
           {doneList.map((item) => (
-            <KanbanCard {...item} />
+            <KanbanCard key={item.title} {...item} />
           ))}
         </KanbanColumn>
       </KanbanBoard>
