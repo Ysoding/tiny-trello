@@ -1,23 +1,55 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { KanbanCard, KanbanCardItem } from "./KanbanCard";
+import { KanbanNewCard } from "./KanbanNewCard";
 
 export interface KanbanColumnProp {
   className: string;
   title: React.ReactNode;
-  children?: React.ReactNode;
+  setDraggedItem?: (item: KanbanCardItem) => void;
   setIsDragSource?: (value: boolean) => void;
   setIsDragTarget?: (value: boolean) => void;
   onDrop?: React.DragEventHandler<HTMLElement>;
+  cardList?: KanbanCardItem[];
+  canAddNew?: boolean;
+  onAdd?: (title: string) => void;
 }
 
 export const KanbanColumn = ({
-  children,
   title,
   className,
+  onDrop,
+  onAdd,
+  canAddNew = false,
+  setDraggedItem = () => {},
   setIsDragSource = () => {},
   setIsDragTarget = () => {},
-  onDrop,
+  cardList = [],
 }: KanbanColumnProp) => {
   const combinedClassName = `kanban-column ${className}`;
+  const [showAdd, setShowAdd] = useState(false);
+
+  useEffect(() => {
+    const handleClick = (evt: MouseEvent) => {
+      const isOutsideComponent = !document
+        .querySelector(".kanban-column-todo")
+        ?.contains(evt.target as Node);
+      if (isOutsideComponent) {
+        setShowAdd(false);
+      }
+    };
+
+    document.addEventListener("click", handleClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleClick, true);
+    };
+  }, []);
+
+  const handleSubmit = (title: string) => {
+    onAdd && onAdd(title);
+    setShowAdd(false);
+  };
+
   return (
     <section
       onDragStart={() => setIsDragSource(true)}
@@ -42,8 +74,29 @@ export const KanbanColumn = ({
       }}
       className={combinedClassName}
     >
-      <h2>{title}</h2>
-      <ul>{children}</ul>
+      <h2>
+        {title}
+        {canAddNew && (
+          <button
+            onClick={() => {
+              setShowAdd(true);
+            }}
+            disabled={showAdd}
+          >
+            &#8853; 添加新卡片
+          </button>
+        )}
+      </h2>
+      <ul>
+        {canAddNew && showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
+        {cardList.map((props: KanbanCardItem) => (
+          <KanbanCard
+            onDragStart={() => setDraggedItem(props)}
+            key={props.title}
+            item={props}
+          />
+        ))}
+      </ul>
     </section>
   );
 };

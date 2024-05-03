@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 import { KanbanBoard } from "./KanbanBoard";
-import { KanbanCard, KanbanCardItem } from "./KanbanCard";
+import { KanbanCardItem } from "./KanbanCard";
 import { KanbanColumn } from "./KanbanColumn";
-import { KanbanNewCard } from "./KanbanNewCard";
 
 const DATA_LOCAL_STORE_KEY = "KANBAN_DATA_STORE";
 const COLUMN_KEY_TODO = "todo";
@@ -26,28 +25,10 @@ function App() {
     { title: "English2", createTime: "2024-04-29 18:15" },
     { title: "Math2", createTime: "2024-04-29 18:15" },
   ]);
-  const [showAdd, setShowAdd] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [draggedItem, setDraggedItem] = useState<KanbanCardItem>();
   const [dragSource, setDragSource] = useState<string>("");
   const [dragTarget, setDragTarget] = useState<string>("");
-
-  useEffect(() => {
-    const handleClick = (evt: MouseEvent) => {
-      const isOutsideComponent = !document
-        .querySelector(".kanban-column-todo")
-        ?.contains(evt.target as Node);
-      if (isOutsideComponent) {
-        setShowAdd(false);
-      }
-    };
-
-    document.addEventListener("click", handleClick, true);
-
-    return () => {
-      document.removeEventListener("click", handleClick, true);
-    };
-  }, []);
 
   useEffect(() => {
     const data = window.localStorage.getItem(DATA_LOCAL_STORE_KEY);
@@ -61,10 +42,6 @@ function App() {
       }
     }, 1000);
   }, []);
-
-  const handleSubmit = (title: string) => {
-    setTodoList([{ title, createTime: new Date().toString() }, ...todoList]);
-  };
 
   const handleSaveAll = () => {
     const data = JSON.stringify({
@@ -125,19 +102,7 @@ function App() {
           <>
             <KanbanColumn
               className="kanban-column-todo"
-              title={
-                <>
-                  待处理
-                  <button
-                    onClick={() => {
-                      setShowAdd(true);
-                    }}
-                    disabled={showAdd}
-                  >
-                    ⊕ 添加新卡片
-                  </button>
-                </>
-              }
+              title="待处理"
               setIsDragSource={(isSrc) =>
                 setDragSource(isSrc ? COLUMN_KEY_TODO : "")
               }
@@ -145,16 +110,16 @@ function App() {
                 setDragTarget(isTgt ? COLUMN_KEY_TODO : "")
               }
               onDrop={handleDrop}
-            >
-              {showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
-              {todoList.map((item) => (
-                <KanbanCard
-                  key={item.title}
-                  onDragStart={() => setDraggedItem(item)}
-                  item={item}
-                />
-              ))}
-            </KanbanColumn>
+              cardList={todoList}
+              setDraggedItem={setDraggedItem}
+              onAdd={(title) => {
+                setTodoList([
+                  { title, createTime: new Date().toString() },
+                  ...todoList,
+                ]);
+              }}
+              canAddNew
+            />
 
             <KanbanColumn
               title="进行中"
@@ -166,15 +131,9 @@ function App() {
                 setDragTarget(isTgt ? COLUMN_KEY_ONGOING : "")
               }
               onDrop={handleDrop}
-            >
-              {ongoingList.map((item) => (
-                <KanbanCard
-                  onDragStart={() => setDraggedItem(item)}
-                  key={item.title}
-                  item={item}
-                />
-              ))}
-            </KanbanColumn>
+              cardList={ongoingList}
+              setDraggedItem={setDraggedItem}
+            />
 
             <KanbanColumn
               className="kanban-column-done"
@@ -186,15 +145,9 @@ function App() {
                 setDragTarget(isTgt ? COLUMN_KEY_DONE : "")
               }
               onDrop={handleDrop}
-            >
-              {doneList.map((item) => (
-                <KanbanCard
-                  onDragStart={() => setDraggedItem(item)}
-                  key={item.title}
-                  item={item}
-                />
-              ))}
-            </KanbanColumn>
+              cardList={doneList}
+              setDraggedItem={setDraggedItem}
+            />
           </>
         )}
       </KanbanBoard>
