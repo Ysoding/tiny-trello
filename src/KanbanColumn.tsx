@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { KanbanCard, KanbanCardItem } from "./KanbanCard";
 import { KanbanNewCard } from "./KanbanNewCard";
+import { COLUMN_KEY_DONE } from "./KanbanBoard";
 
 export interface KanbanColumnProp {
   className: string;
@@ -12,6 +13,7 @@ export interface KanbanColumnProp {
   cardList?: KanbanCardItem[];
   canAddNew?: boolean;
   onAdd?: (newCard: KanbanCardItem) => void;
+  onRemove?: (target: string, card: KanbanCardItem) => void;
 }
 
 export const KanbanColumn = ({
@@ -19,6 +21,7 @@ export const KanbanColumn = ({
   className,
   onDrop,
   onAdd,
+  onRemove = undefined,
   canAddNew = false,
   setDraggedItem = () => {},
   setIsDragSource = () => {},
@@ -94,6 +97,7 @@ export const KanbanColumn = ({
             onDragStart={() => setDraggedItem(props)}
             key={props.title}
             item={props}
+            onRemove={onRemove?.bind(null, COLUMN_KEY_DONE)}
           />
         ))}
       </ul>

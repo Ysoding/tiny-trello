@@ -91,6 +91,7 @@ export const KanbanBoard = ({
             onDrop={handleDrop}
             cardList={doneList}
             setDraggedItem={setDraggedItem}
+            onRemove={onRemove}
           />
         </>
       )}

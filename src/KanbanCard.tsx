@@ -1,4 +1,5 @@
-import React, { DragEvent, useEffect, useState } from "react";
+import React, { DragEvent, useContext, useEffect, useState } from "react";
+import AdminContext from "./context/AdminContext";
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
@@ -14,17 +15,15 @@ export interface KanbanCardItem {
 export interface KanbanCardProp {
   item: KanbanCardItem;
   onDragStart: React.DragEventHandler<HTMLLIElement>;
+  onRemove?: (item: KanbanCardItem) => void;
 }
 
-export const KanbanCard = ({
-  item: { title, createTime },
-  onDragStart,
-}: KanbanCardProp) => {
-  const [dispalyTime, setDisplayTime] = useState(createTime);
+export const KanbanCard = ({ item, onDragStart, onRemove }: KanbanCardProp) => {
+  const [dispalyTime, setDisplayTime] = useState(item.createTime);
 
   useEffect(() => {
     const updateDisplayTime = () => {
-      const createTimeDate = new Date(createTime);
+      const createTimeDate = new Date(item.createTime);
       const nowDate = new Date();
       const timePassed = nowDate.getTime() - createTimeDate.getTime();
 
@@ -47,18 +46,25 @@ export const KanbanCard = ({
     return function cleanup() {
       clearInterval(intervalID);
     };
-  }, [createTime]);
+  }, [item.createTime]);
 
   const handleDragStart = (evt: DragEvent<HTMLLIElement>) => {
     evt.dataTransfer.effectAllowed = "move";
-    evt.dataTransfer.setData("text/plain", title);
+    evt.dataTransfer.setData("text/plain", item.title);
     onDragStart && onDragStart(evt);
   };
 
+  const isAdmin = useContext(AdminContext);
+
   return (
     <li className="kanban-card" draggable onDragStart={handleDragStart}>
-      <div className="kanban-card-title">{title}</div>
-      <div title={createTime}>{dispalyTime}</div>
+      <div className="kanban-card-title">{item.title}</div>
+      <div className="kanban-card-status" title={item.createTime}>
+        {dispalyTime}{" "}
+        {isAdmin && onRemove && (
+          <button onClick={() => onRemove(item)}>X</button>
+        )}{" "}
+      </div>
     </li>
   );
 };

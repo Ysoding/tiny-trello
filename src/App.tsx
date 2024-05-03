@@ -8,6 +8,7 @@ import {
   KanbanBoard,
 } from "./KanbanBoard";
 import { KanbanCardItem } from "./KanbanCard";
+import AdminContext from "./context/AdminContext";
 
 const DATA_LOCAL_STORE_KEY = "KANBAN_DATA_STORE";
 
@@ -28,6 +29,11 @@ function App() {
   ]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const handleToggleAdmin = () => {
+    setIsAdmin(!isAdmin);
+  };
 
   useEffect(() => {
     const data = window.localStorage.getItem(DATA_LOCAL_STORE_KEY);
@@ -76,18 +82,29 @@ function App() {
     <div className="app">
       <header className="header">
         <h1>
-          Tiny Trello <button onClick={handleSaveAll}>保存所有卡片</button>
+          Tiny Trello
+          <button onClick={handleSaveAll}>保存所有卡片</button>
+          <label>
+            <input
+              type="checkbox"
+              value={isAdmin ? "true" : "false"}
+              onChange={handleToggleAdmin}
+            />
+            管理员模式
+          </label>
         </h1>
         <img src={reactLogo} className="logo" alt="logo" />
       </header>
-      <KanbanBoard
-        isLoading={isLoading}
-        todoList={todoList}
-        doneList={doneList}
-        ongoingList={ongoingList}
-        onAdd={handleAdd}
-        onRemove={handleRemove}
-      />
+      <AdminContext.Provider value={isAdmin}>
+        <KanbanBoard
+          isLoading={isLoading}
+          todoList={todoList}
+          doneList={doneList}
+          ongoingList={ongoingList}
+          onAdd={handleAdd}
+          onRemove={handleRemove}
+        />
+      </AdminContext.Provider>
     </div>
   );
 }

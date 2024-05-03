@@ -37,21 +37,45 @@ h1 {
 
 .header {
   display: flex;
-  flex: 1;
+  justify-content: space-between;
+  align-items: center;
   margin: 1rem 1rem 0;
   border-radius: 1rem;
   background-color: #642727;
   min-height: 5rem;
-  align-items: center;
-  justify-content: center;
+  padding: 0 1rem;
   font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.header > h1 > button {
+.header .logo {
+  height: 3rem;
+  width: auto;
+}
+
+.header h1 {
+  display: flex;
+  align-items: center;
+  font-size: 4rem;
+}
+
+.header h1 button {
   border: 0;
-  border-radius: 1rem;
-  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-left: 1rem;
+  background-color: #fff;
+  color: #642727;
+  cursor: pointer;
+}
+
+.header h1 label {
+  margin-left: 1rem;
+  font-size: initial;
+  font-weight: initial;
+  display: flex;
+  align-items: center;
+  color: white;
 }
 
 .kanban-board {
