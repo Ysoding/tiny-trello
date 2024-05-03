@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { KanbanCardItem } from "./KanbanCard";
 interface NewCardProp {
-  onSumbit: (title: string) => void;
+  onSumbit: (newCard: KanbanCardItem) => void;
 }
 
 export const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
@@ -11,7 +12,8 @@ export const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
   };
   const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
     if (evt.key === "Enter") {
-      onSumbit(title);
+      const newCard = { title, createTime: new Date().toString() };
+      onSumbit(newCard);
     }
   };
 

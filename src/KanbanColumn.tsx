@@ -11,7 +11,7 @@ export interface KanbanColumnProp {
   onDrop?: React.DragEventHandler<HTMLElement>;
   cardList?: KanbanCardItem[];
   canAddNew?: boolean;
-  onAdd?: (title: string) => void;
+  onAdd?: (newCard: KanbanCardItem) => void;
 }
 
 export const KanbanColumn = ({
@@ -45,8 +45,8 @@ export const KanbanColumn = ({
     };
   }, []);
 
-  const handleSubmit = (title: string) => {
-    onAdd && onAdd(title);
+  const handleSubmit = (newCard: KanbanCardItem) => {
+    onAdd && onAdd(newCard);
     setShowAdd(false);
   };
 

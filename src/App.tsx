@@ -84,6 +84,10 @@ function App() {
     }
   };
 
+  const handleAdd = (newCard: KanbanCardItem) => {
+    setTodoList([newCard, ...todoList]);
+  };
+
   return (
     <div className="app">
       <header className="header">
@@ -112,12 +116,7 @@ function App() {
               onDrop={handleDrop}
               cardList={todoList}
               setDraggedItem={setDraggedItem}
-              onAdd={(title) => {
-                setTodoList([
-                  { title, createTime: new Date().toString() },
-                  ...todoList,
-                ]);
-              }}
+              onAdd={handleAdd}
               canAddNew
             />
 
