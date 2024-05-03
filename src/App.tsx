@@ -1,10 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { DragEvent, useEffect, useRef, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 
-interface KanbanCardProp {
+interface KanbanCardItem {
   title: string;
   createTime: string;
+}
+
+interface KanbanCardProp {
+  item: KanbanCardItem;
+  onDragStart: React.DragEventHandler<HTMLLIElement>;
 }
 
 interface NewCardProp {
@@ -19,6 +24,9 @@ interface KanbanColumnProp {
   className: string;
   title: React.ReactNode;
   children?: React.ReactNode;
+  setIsDragSource?: (value: boolean) => void;
+  setIsDragTarget?: (value: boolean) => void;
+  onDrop?: React.DragEventHandler<HTMLElement>;
 }
 
 const MINUTE = 60 * 1000;
@@ -26,8 +34,14 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const UPDATE_INTERVAL = MINUTE;
 const DATA_LOCAL_STORE_KEY = "KANBAN_DATA_STORE";
+const COLUMN_KEY_TODO = "todo";
+const COLUMN_KEY_ONGOING = "ongoing";
+const COLUMN_KEY_DONE = "done";
 
-const KanbanCard = ({ title, createTime }: KanbanCardProp) => {
+const KanbanCard = ({
+  item: { title, createTime },
+  onDragStart,
+}: KanbanCardProp) => {
   const [dispalyTime, setDisplayTime] = useState(createTime);
 
   useEffect(() => {
@@ -57,18 +71,53 @@ const KanbanCard = ({ title, createTime }: KanbanCardProp) => {
     };
   }, [createTime]);
 
+  const handleDragStart = (evt: DragEvent<HTMLLIElement>) => {
+    evt.dataTransfer.effectAllowed = "move";
+    evt.dataTransfer.setData("text/plain", title);
+    onDragStart && onDragStart(evt);
+  };
+
   return (
-    <li className="kanban-card">
+    <li className="kanban-card" draggable onDragStart={handleDragStart}>
       <div className="kanban-card-title">{title}</div>
       <div title={createTime}>{dispalyTime}</div>
     </li>
   );
 };
 
-const KanbanColumn = ({ children, title, className }: KanbanColumnProp) => {
+const KanbanColumn = ({
+  children,
+  title,
+  className,
+  setIsDragSource = () => {},
+  setIsDragTarget = () => {},
+  onDrop,
+}: KanbanColumnProp) => {
   const combinedClassName = `kanban-column ${className}`;
   return (
-    <section className={combinedClassName}>
+    <section
+      onDragStart={() => setIsDragSource(true)}
+      onDragOver={(evt) => {
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = "move";
+        setIsDragTarget(true);
+      }}
+      onDragLeave={(evt) => {
+        evt.preventDefault();
+        evt.dataTransfer.dropEffect = "none";
+        setIsDragTarget(false);
+      }}
+      onDrop={(evt) => {
+        evt.preventDefault();
+        onDrop && onDrop(evt);
+      }}
+      onDragEnd={(evt) => {
+        evt.preventDefault();
+        setIsDragSource(false);
+        setIsDragTarget(false);
+      }}
+      className={combinedClassName}
+    >
       <h2>{title}</h2>
       <ul>{children}</ul>
     </section>
@@ -114,23 +163,25 @@ const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
 };
 
 function App() {
-  const [todoList, setTodoList] = useState<Array<KanbanCardProp>>([
+  const [todoList, setTodoList] = useState<Array<KanbanCardItem>>([
     { title: "Kata1", createTime: "2024-04-29 18:15" },
     { title: "Kata2", createTime: "2024-04-29 18:15" },
     { title: "English", createTime: "2024-04-29 18:15" },
     { title: "Math", createTime: "2024-04-29 18:15" },
   ]);
-  const [ongoingList, setOngoingList] = useState<Array<KanbanCardProp>>([
+  const [ongoingList, setOngoingList] = useState<Array<KanbanCardItem>>([
     { title: "Kata11", createTime: "2024-04-29 18:15" },
     { title: "Kata22", createTime: "2024-04-29 18:15" },
   ]);
-  const [doneList, setDoneList] = useState<Array<KanbanCardProp>>([
+  const [doneList, setDoneList] = useState<Array<KanbanCardItem>>([
     { title: "English2", createTime: "2024-04-29 18:15" },
     { title: "Math2", createTime: "2024-04-29 18:15" },
   ]);
-
   const [showAdd, setShowAdd] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [draggedItem, setDraggedItem] = useState<KanbanCardItem>();
+  const [dragSource, setDragSource] = useState<string>("");
+  const [dragTarget, setDragTarget] = useState<string>("");
 
   useEffect(() => {
     const handleClick = (evt: MouseEvent) => {
@@ -176,6 +227,37 @@ function App() {
     window.localStorage.setItem(DATA_LOCAL_STORE_KEY, data);
   };
 
+  const handleDrop = () => {
+    if (
+      !draggedItem ||
+      !dragSource ||
+      !dragTarget ||
+      dragSource === dragTarget
+    ) {
+      return;
+    }
+
+    const updaters: {
+      [key: string]: (
+        arg: (currState: KanbanCardItem[]) => KanbanCardItem[]
+      ) => void;
+    } = {
+      [COLUMN_KEY_TODO]: setTodoList,
+      [COLUMN_KEY_ONGOING]: setOngoingList,
+      [COLUMN_KEY_DONE]: setDoneList,
+    };
+
+    if (dragSource) {
+      updaters[dragSource]((currentState) =>
+        currentState.filter((item) => !Object.is(item, draggedItem))
+      );
+    }
+
+    if (dragTarget) {
+      updaters[dragTarget]((currentState) => [draggedItem, ...currentState]);
+    }
+  };
+
   return (
     <div className="app">
       <header className="header">
@@ -207,22 +289,61 @@ function App() {
                   </button>
                 </>
               }
+              setIsDragSource={(isSrc) =>
+                setDragSource(isSrc ? COLUMN_KEY_TODO : "")
+              }
+              setIsDragTarget={(isTgt) =>
+                setDragTarget(isTgt ? COLUMN_KEY_TODO : "")
+              }
+              onDrop={handleDrop}
             >
               {showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
               {todoList.map((item) => (
-                <KanbanCard key={item.title} {...item} />
+                <KanbanCard
+                  key={item.title}
+                  onDragStart={() => setDraggedItem(item)}
+                  item={item}
+                />
               ))}
             </KanbanColumn>
 
-            <KanbanColumn title="进行中" className="kanban-column-ongoing">
+            <KanbanColumn
+              title="进行中"
+              className="kanban-column-ongoing"
+              setIsDragSource={(isSrc) =>
+                setDragSource(isSrc ? COLUMN_KEY_ONGOING : "")
+              }
+              setIsDragTarget={(isTgt) =>
+                setDragTarget(isTgt ? COLUMN_KEY_ONGOING : "")
+              }
+              onDrop={handleDrop}
+            >
               {ongoingList.map((item) => (
-                <KanbanCard key={item.title} {...item} />
+                <KanbanCard
+                  onDragStart={() => setDraggedItem(item)}
+                  key={item.title}
+                  item={item}
+                />
               ))}
             </KanbanColumn>
 
-            <KanbanColumn className="kanban-column-done" title="已完成">
+            <KanbanColumn
+              className="kanban-column-done"
+              title="已完成"
+              setIsDragSource={(isSrc) =>
+                setDragSource(isSrc ? COLUMN_KEY_DONE : "")
+              }
+              setIsDragTarget={(isTgt) =>
+                setDragTarget(isTgt ? COLUMN_KEY_DONE : "")
+              }
+              onDrop={handleDrop}
+            >
               {doneList.map((item) => (
-                <KanbanCard key={item.title} {...item} />
+                <KanbanCard
+                  onDragStart={() => setDraggedItem(item)}
+                  key={item.title}
+                  item={item}
+                />
               ))}
             </KanbanColumn>
           </>

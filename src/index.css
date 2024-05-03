@@ -48,6 +48,12 @@ h1 {
   color: white;
 }
 
+.header > h1 > button {
+  border: 0;
+  border-radius: 1rem;
+  padding: 0.2rem 0.5rem;
+}
+
 .kanban-board {
   display: flex;
   flex: 10;
