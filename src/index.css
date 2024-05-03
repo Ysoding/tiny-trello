@@ -104,6 +104,10 @@ h1 {
   background-color: #ffe799;
 }
 
+.kanban-column-loading {
+  background-color: #e3e3e3;
+}
+
 .kanban-card {
   margin-bottom: 1rem;
   border: 1px solid goldenrod;

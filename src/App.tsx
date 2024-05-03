@@ -18,13 +18,14 @@ interface KanbanBoardProp {
 interface KanbanColumnProp {
   className: string;
   title: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const UPDATE_INTERVAL = MINUTE;
+const DATA_LOCAL_STORE_KEY = "KANBAN_DATA_STORE";
 
 const KanbanCard = ({ title, createTime }: KanbanCardProp) => {
   const [dispalyTime, setDisplayTime] = useState(createTime);
@@ -78,8 +79,41 @@ const KanbanBoard = ({ children }: KanbanBoardProp) => {
   return <main className="kanban-board">{children}</main>;
 };
 
+const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
+  const [title, setTitle] = useState("");
+  const inputElem = useRef<HTMLInputElement>(null);
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(evt.target.value);
+  };
+  const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
+    if (evt.key === "Enter") {
+      onSumbit(title);
+    }
+  };
+
+  useEffect(() => {
+    if (inputElem.current) {
+      inputElem.current.focus();
+    }
+  }, []);
+
+  return (
+    <li className="kanban-card">
+      <h3>添加新卡片</h3>
+      <div className="kanban-card-title">
+        <input
+          type="text"
+          value={title}
+          onChange={handleChange}
+          ref={inputElem}
+          onKeyDown={handleKeyDown}
+        />
+      </div>
+    </li>
+  );
+};
+
 function App() {
-  const [showAdd, setShowAdd] = useState(false);
   const [todoList, setTodoList] = useState<Array<KanbanCardProp>>([
     { title: "Kata1", createTime: "2024-04-29 18:15" },
     { title: "Kata2", createTime: "2024-04-29 18:15" },
@@ -90,11 +124,13 @@ function App() {
     { title: "Kata11", createTime: "2024-04-29 18:15" },
     { title: "Kata22", createTime: "2024-04-29 18:15" },
   ]);
-
   const [doneList, setDoneList] = useState<Array<KanbanCardProp>>([
     { title: "English2", createTime: "2024-04-29 18:15" },
     { title: "Math2", createTime: "2024-04-29 18:15" },
   ]);
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const handleClick = (evt: MouseEvent) => {
@@ -113,84 +149,84 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const data = window.localStorage.getItem(DATA_LOCAL_STORE_KEY);
+    setTimeout(() => {
+      if (data) {
+        const kanbanColumnData = JSON.parse(data);
+        setTodoList(kanbanColumnData.todoList);
+        setOngoingList(kanbanColumnData.ongoingList);
+        setDoneList(kanbanColumnData.doneList);
+        setIsLoading(false);
+      }
+    }, 1000);
+  }, []);
+
   const handleSubmit = (title: string) => {
     setTodoList([{ title, createTime: new Date().toString() }, ...todoList]);
   };
 
-  const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
-    const [title, setTitle] = useState("");
-    const inputElem = useRef<HTMLInputElement>(null);
-    const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-      setTitle(evt.target.value);
-    };
-    const handleKeyDown = (evt: React.KeyboardEvent<HTMLInputElement>) => {
-      if (evt.key === "Enter") {
-        onSumbit(title);
-      }
-    };
+  const handleSaveAll = () => {
+    const data = JSON.stringify({
+      todoList,
+      ongoingList,
+      doneList,
+    });
 
-    useEffect(() => {
-      if (inputElem.current) {
-        inputElem.current.focus();
-      }
-    }, []);
-
-    return (
-      <li className="kanban-card">
-        <h3>添加新卡片</h3>
-        <div className="kanban-card-title">
-          <input
-            type="text"
-            value={title}
-            onChange={handleChange}
-            ref={inputElem}
-            onKeyDown={handleKeyDown}
-          />
-        </div>
-      </li>
-    );
+    window.localStorage.setItem(DATA_LOCAL_STORE_KEY, data);
   };
 
   return (
     <div className="app">
       <header className="header">
-        <h1>Tiny Trello</h1>
+        <h1>
+          Tiny Trello <button onClick={handleSaveAll}>保存所有卡片</button>
+        </h1>
         <img src={reactLogo} className="logo" alt="logo" />
       </header>
       <KanbanBoard>
-        <KanbanColumn
-          className="kanban-column-todo"
-          title={
-            <>
-              待处理
-              <button
-                onClick={() => {
-                  setShowAdd(true);
-                }}
-                disabled={showAdd}
-              >
-                ⊕ 添加新卡片
-              </button>
-            </>
-          }
-        >
-          {showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
-          {todoList.map((item) => (
-            <KanbanCard key={item.title} {...item} />
-          ))}
-        </KanbanColumn>
+        {isLoading ? (
+          <KanbanColumn
+            title="读取中..."
+            className="kanban-column-loading"
+          ></KanbanColumn>
+        ) : (
+          <>
+            <KanbanColumn
+              className="kanban-column-todo"
+              title={
+                <>
+                  待处理
+                  <button
+                    onClick={() => {
+                      setShowAdd(true);
+                    }}
+                    disabled={showAdd}
+                  >
+                    ⊕ 添加新卡片
+                  </button>
+                </>
+              }
+            >
+              {showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
+              {todoList.map((item) => (
+                <KanbanCard key={item.title} {...item} />
+              ))}
+            </KanbanColumn>
 
-        <KanbanColumn title="进行中" className="kanban-column-ongoing">
-          {ongoingList.map((item) => (
-            <KanbanCard key={item.title} {...item} />
-          ))}
-        </KanbanColumn>
+            <KanbanColumn title="进行中" className="kanban-column-ongoing">
+              {ongoingList.map((item) => (
+                <KanbanCard key={item.title} {...item} />
+              ))}
+            </KanbanColumn>
 
-        <KanbanColumn className="kanban-column-done" title="已完成">
-          {doneList.map((item) => (
-            <KanbanCard key={item.title} {...item} />
-          ))}
-        </KanbanColumn>
+            <KanbanColumn className="kanban-column-done" title="已完成">
+              {doneList.map((item) => (
+                <KanbanCard key={item.title} {...item} />
+              ))}
+            </KanbanColumn>
+          </>
+        )}
       </KanbanBoard>
     </div>
   );
