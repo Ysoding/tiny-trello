@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 
@@ -34,7 +34,6 @@ const KanbanCard = ({ title, createTime }: KanbanCardProp) => {
       const createTimeDate = new Date(createTime);
       const nowDate = new Date();
       const timePassed = nowDate.getTime() - createTimeDate.getTime();
-      console.log(timePassed);
 
       let relativeTime = "刚刚";
 
@@ -118,8 +117,9 @@ function App() {
     setTodoList([{ title, createTime: new Date().toString() }, ...todoList]);
   };
 
-  const NewCard = ({ onSumbit }: NewCardProp) => {
+  const KanbanNewCard = ({ onSumbit }: NewCardProp) => {
     const [title, setTitle] = useState("");
+    const inputElem = useRef<HTMLInputElement>(null);
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
       setTitle(evt.target.value);
     };
@@ -129,6 +129,12 @@ function App() {
       }
     };
 
+    useEffect(() => {
+      if (inputElem.current) {
+        inputElem.current.focus();
+      }
+    }, []);
+
     return (
       <li className="kanban-card">
         <h3>添加新卡片</h3>
@@ -137,6 +143,7 @@ function App() {
             type="text"
             value={title}
             onChange={handleChange}
+            ref={inputElem}
             onKeyDown={handleKeyDown}
           />
         </div>
@@ -167,7 +174,7 @@ function App() {
             </>
           }
         >
-          {showAdd && <NewCard onSumbit={handleSubmit} />}
+          {showAdd && <KanbanNewCard onSumbit={handleSubmit} />}
           {todoList.map((item) => (
             <KanbanCard key={item.title} {...item} />
           ))}
